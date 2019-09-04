@@ -106,10 +106,10 @@ class MDBHandler():
         self.pi.bb_serial_read_close(self.rx_gpio)
 
     def send_ack(self):
-        self.send([0x00])
+        self.send([0x00, 0x01])
 
     def send_nack(self):
-        self.send([0xff])
+        self.send([0xff, 0x01])
 
     def send_data(self, data):
         self.pi.wave_clear()
