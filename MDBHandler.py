@@ -79,7 +79,7 @@ class MDBHandler():
 
         if frame is not None:
             self.print_frame(frame)
-            # self.handle_frame(frame)
+            self.handle_frame(frame)
 
     def session_open(self):
         self.send_buffer.append([0x03, 0x05, 0x39])

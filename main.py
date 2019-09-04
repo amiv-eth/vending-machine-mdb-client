@@ -16,7 +16,7 @@ mdb = MDBHandler(pi, RXD, TXD)
 pigpio.exceptions = True
 
 finished = False
-stop = time.time() + 10.0 # recording 10.0 seconds
+stop = time.time() + 20.0 # recording 20.0 seconds
 state = MDBState.RESET
 sendSessionCloseTime = None
 sessionCloseSent = False
@@ -25,6 +25,24 @@ print('MDBHandler: start!')
 
 while not finished and time.time() < stop:
     mdb.run()
+
+    newState = mdb.get_state()
+
+    if newState != state:
+        if newState == MDBState.ENABLED:
+            if sessionCloseSent:
+                finished = True
+            else:
+                mdb.session_open()
+        elif newState == MDBState.SESSION_IDLE:
+            mdb.session_display_request(b'Sorry, heute'.center(16) +
+                    (b'kein Freibier!').center(16))
+            sendSessionCloseTime = time.time() + 6
+        state = newState
+
+    if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
+        mdb.session_close()
+        sessionCloseSent = True
 
 mdb.stop()
 
