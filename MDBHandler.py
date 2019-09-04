@@ -179,7 +179,7 @@ class MDBHandler():
                 self.has_pending_frame = False
                 if self.frame_buffer[len(self.frame_buffer)-1] == self.frame_checksum:
                     # A valid frame was received!
-                    print('Received a valid frame! YAY!')
+                    print('Received a valid frame! YAY! Address is ' + hex(self.frame_buffer[0] & 0xf8))
                     return self.frame_buffer
                 else:
                     # An invalid frame was received!
