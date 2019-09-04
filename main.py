@@ -1,5 +1,6 @@
 import time
-import pigpio # http://abyz.me.uk/rpi/pigpio/python.html
+import pigpio
+from MDBHandler import MDBHandler
 
 RXD=4 # number of GPIO
 
@@ -9,25 +10,19 @@ if not pi.connected:
     print('pigpio not connected!')
     exit(0)
 
-pigpio.exceptions = False # Ignore error if already set as bit bang read.
-
-pi.bb_serial_read_open(RXD, 9600,9) # Set baud rate and number of data bits here. Reading 9 data bits will read the parity bit.
+mdb = MDBHandler(pi, RXD)
 
 pigpio.exceptions = True
 
 stop = time.time() + 10.0 # recording 10.0 seconds
 
-print('pigpio: start reading!')
+print('MDBHandler: start!')
 
 while time.time() < stop:
-    (count, data) = pi.bb_serial_read(RXD)
-    if count:
-        # print(data.hex(),end="")
-        print(data.hex())
-        # pi.file_write(handle, data.hex())
+    mdb.run()
 
-pi.bb_serial_read_close(RXD)
+mdb.stop()
 
-print('pigpio: stopped reading!')
+print('MDBHandler: stopped!')
 
 pi.stop()
