@@ -151,7 +151,7 @@ class MDBHandler():
                     if frame_buffer_length == 2:
                         command = self.frame_buffer[0] & 7
                         if command in CommandToFrameLengthMapping:
-                            commandFrameLength = CommandToFrameLengthMapping[]
+                            commandFrameLength = CommandToFrameLengthMapping[command]
                             if isinstance(commandFrameLength, int):
                                 self.frame_expected_length = commandFrameLength
                             elif self.frame_buffer[1] in commandFrameLength:
