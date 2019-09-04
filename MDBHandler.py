@@ -40,7 +40,7 @@ class MDBSubcommand():
 CommandToFrameLengthMapping = {
     MDBCommand.RESET: 2,
     MDBCommand.SETUP: 7,
-    MDBCommand.POLL: 2
+    MDBCommand.POLL: 2,
     MDBCommand.READER: 3,
     MDBCommand.EXPANSION: 32
 }
