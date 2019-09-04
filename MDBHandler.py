@@ -182,9 +182,14 @@ class MDBHandler():
         return None
 
     def print_frame(self, frame):
+        address = frame[0] & 0xf8
+
+        if address != 0x10:
+            return
+
         print('New frame received! | ', end='')
         print('Address: ', end='')
-        print(hex(frame[0] & 0xf8), end=', ')
+        print(hex(), end=', ')
         print('Length: ', end='')
         print(len(frame), end=', ')
         print('Checksum: ', end='')
