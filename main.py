@@ -26,7 +26,7 @@ print('MDBHandler: start!')
 while not finished and time.time() < stop:
     mdb.run()
 
-    newState = mdb.state()
+    newState = mdb.get_state()
 
     if newState != state:
         if newState == MDBState.ENABLED:
