@@ -55,17 +55,9 @@ CommandToFrameLengthMapping = {
 class MDBHandler():
     # Timeout in seconds
     TIMEOUT = 12
-    
-    # MDB2PC Constants
-    MDB2PC_NAK = b'\x15'
-    MDB2PC_ACK = b'\x06'
-    MDB2PC_FRAME_START = b'\x02'
-    MDB2PC_FRAME_BEGIN = b'\x02\x00'
-    MDB2PC_FRAME_STOP = b'\x10\x03'
 
     # MDB Constants
-    MDB_ACK = b''
-    MDB_JUST_RESET = b'\x00'
+    # MDB_JUST_RESET = b'\x00'
     MDB_POLL = b'\x12'
     MDB_RESET = b'\x10\x10'
     MDB_READER_ENABLE = b'\x14\x01'
@@ -84,9 +76,10 @@ class MDBHandler():
 
     DISPLAY_WIDTH = 16
 
-    def __init__(self, pi, rx_gpio):
+    def __init__(self, pi, rx_gpio, tx_gpio):
         self.pi = pi
         self.rx_gpio = rx_gpio
+        self.tx_gpio = tx_gpio
         pigpio.exceptions = False # Ignore error if already set as bit bang read.
         self.pi.bb_serial_read_open(rx_gpio, 9600, 9) # Set baud rate and number of data bits here. Reading 9 data bits will read the parity bit.
         pigpio.exceptions = True
@@ -95,20 +88,73 @@ class MDBHandler():
         self.frame_buffer = []
         self.frame_checksum = 0
         self.frame_expected_length = 2
+        self.send_buffer = []
 
     def run(self):
         frame = self.collect_frame()
+
         if frame is not None:
-            self.handle_frame(frame)
+            self.print_frame(frame)
+            # self.handle_frame(frame)
+
+    def session_open(self):
+        self.send_buffer.append(b'\x03\x05\x39')
+
+    def session_display_request(self, content):
+        # will show the text for 6 seconds
+        self.send_buffer.append(b'\x02\x3C' + content)
+
+    def session_cancel(self):
+        self.send_buffer.append(b'\x04')
+
+    def session_close(self):
+        self.send_buffer.append(b'\x07')
+
+    def reset(self):
+        self.state = MDBState.RESET
+        self.has_pending_frame = False
+        self.frame_buffer = []
+        self.frame_checksum = 0
+        self.frame_expected_length = 2
+        self.send_buffer = []
 
     def stop(self):
         self.pi.bb_serial_read_close(self.rx_gpio)
+
+    def send_ack(self):
+        self.send(b'\x00')
+
+    def send_nack(self):
+        self.send(b'\xff')
+
+    def send_data(self, data):
+        self.pi.wave_clear()
+        frame = []
+        checksum = b'\x00'
+        for i in range(0, len(data)):
+            frame.append(bytes([data[i]]))
+            frame.append(b'\x00') # set parity bit to zero
+            checksum += bytes([data[i] % 256])
+        # add checksum with parity bit set
+        frame.append(checksum)
+        frame.append(b'\x01')
+        self.send(frame)
+    
+    def send(self, frame):
+        self.pi.wave_add_serial(self.tx_gpio, 9600, frame, 0, 9)
+        wid=self.pi.wave_create()
+        self.pi.wave_send_once(wid)
+        while self.pi.wave_tx_busy():
+            pass
+        self.pi.wave_delete(wid)
+
+    def get_state(self):
+        return self.state
 
     def collect_frame(self):
         (count, data) = self.pi.bb_serial_read(self.rx_gpio)
         if count:
             for pos in range(0, count, 2):
-
                 # handle new address byte / start new frame
                 if data[pos+1] is b'\x01':
                     # new address byte received. Start new frame
@@ -146,7 +192,7 @@ class MDBHandler():
                     pass
         return None
 
-    def handle_frame(self, frame):
+    def print_frame(self, frame):
         print('New frame received! | ', end='')
         print('Address: ', end='')
         print((frame[0] & b'\xF8').hex(), end=', ')
@@ -161,171 +207,56 @@ class MDBHandler():
             for i in range(1, len(frame)):
                 print(frame[i].hex(), end='')
 
-    # def handle_data(self, data):
-    #     if self.state == "RESET":
-    #         logging.debug("STATE: RESET")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(self.MDB_JUST_RESET)
-    #             self.state = "DISABLED"
-    #         elif data == self.MDB_RESET:  # RESET
-    #             logging.info("MDB: [IN] Reset")
-    #             self.send_data(self.MDB_ACK)
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-    #     elif self.state == "DISABLED":
-    #         logging.debug("STATE: DISABLED")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(self.MDB_ACK)
-    #         elif data == self.MDB_RESET:  # RESET
-    #             logging.info("MDB: [IN] Reset")
-    #             self.send_data(self.MDB_ACK)
-    #             self.state = "RESET"
-    #         elif data == b'\x11\x00\x03\x10\x10\x02\x01':  # SETUP CONFIG
-    #             logging.debug("MDB: [IN] Setup Config")
-    #             self.send_data(self.MDB_READER_CONFIG_RESPONSE)
-    #         elif data == b'\x11\x01\x03\xe8\x00\x05':
-    #             logging.debug("MDB: [IN] MinMax Prices")
-    #             self.send_data(self.MDB_ACK)
-    #         elif data == self.MDB_READER_ENABLE:
-    #             logging.info("MDB: [IN] Reader Enable")
-    #             self.send_data(self.MDB_ACK)
-    #             self.state = "ENABLED"
-    #             with self.condition:
-    #                 self.condition.notify()
-    #         elif data == b'\x17\x00SIE000':
-    #             logging.debug("MDB: [IN] Extended Features")
-    #             self.send_data(self.MDB_EXT_FEATURES_RESPONSE)
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-    #     elif self.state == "ENABLED":
-    #         logging.debug("STATE: ENABLED")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             if self.open_session == 1:
-    #                 self.timer = time.time()
-    #                 self.send_data(self.MDB_OPEN_SESSION)
-    #                 self.state = "DISPLAY SESSION"
-    #                 self.open_session = 0
-    #                 self.last_amount = self.beer_available_callback(0)
-    #                 #print("Amount "+ str(self.last_amount))
-    #             else:
-    #                 self.send_data(self.MDB_ACK)
+    def handle_frame(self, frame):
+        address = frame[0] & b'\xF8'
+        length = len(frame)
+        command = frame[0] & b'\x07'
 
-    #         elif data == self.MDB_READER_ENABLE:
-    #             logging.debug("MDB: [IN] Reader Enable")
-    #             self.send_data(self.MDB_ACK)
-    #         elif data == self.MDB_RESET:  # RESET
-    #             logging.info("MDB: [IN] Reset")
-    #             self.send_data(self.MDB_ACK)
-    #             self.state = "RESET"
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
+        # Only handle frames addressed to this device! Sniffing comes with revision 2!
+        if address != b'\x010':
+            return
 
-    #     elif self.state == "SESSION":
-    #         logging.debug("STATE: SESSION")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             if time.time() - self.timer > self.TIMEOUT:
-    #                 self.state = "SESSION END"
-    #             else:
-    #                 self.send_data(self.MDB_ACK)
-    #         elif data[0:2] == self.MDB_VEND_REQUEST:
-    #             logging.info("MDB: [IN] Vend Request")
-    #             self.slot = struct.unpack('>H', data[4:6])[0]
-    #             self.last_amount = self.beer_available_callback(self.slot)
-    #             logging.info('self last amount %d', self.last_amount)
-    #             if self.last_amount:
-    #                 logging.info("MDB: [LOGIC] Request Approved, " + str(self.last_amount - 1) + " Beers left")
-    #                 self.timer = time.time()
-    #                 self.send_data(self.MDB_VEND_APPROVED)
-    #             else:
-    #                 logging.info("MDB: [LOGIC] Request Denied")
-    #                 self.send_data(self.MDB_VEND_DENIED)
-
-    #         elif data[0:2] == self.MDB_VEND_SUCCESFUL:
-    #             logging.info("MDB: [IN] Vend Success")
-    #             self.dispensed_callback(self.slot)
-    #             self.send_data(self.MDB_CANCEL_REQUEST)
-    #             self.state = "SESSION END"
-    #         elif data[0:2] == self.MDB_VEND_CANCEL:
-    #             # User put in coins
-    #             logging.info("MDB: [IN] Vend Cancel")
-    #             self.send_data(self.MDB_VEND_DENIED)
-    #             self.state = "VEND CANCELED"
-    #         elif data == self.MDB_RESET:  # RESET
-    #             logging.info("MDB: [IN] Reset")
-    #             self.send_data(self.MDB_ACK)
-    #             self.state = "RESET"
-    #         elif data == self.MDB_SESSION_COMPLETE:
-    #             logging.info("MDB: [IN] Session Complete")
-    #             self.send_data(self.MDB_ACK)
-    #             self.state = "SESSION END"
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-
-    #     elif self.state == "SESSION END":
-    #         logging.debug("STATE: SESSION END")
-    #         if data == self.MDB_POLL:
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(self.MDB_END_SESSION)
-    #             self.state = "DISPLAY END SESSION"
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-
-    #     elif self.state == "DISPLAY SESSION":
-    #         logging.debug("STATE: DISPLAY")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(b'\x02\x3C' +
-    #                 b'AMIV'.center(self.DISPLAY_WIDTH) +
-    #                 (str(self.last_amount).encode('ascii') + b' Freibier').center(self.DISPLAY_WIDTH))
-    #             self.state = "SESSION"
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-
-    #     elif self.state == "DISPLAY END SESSION":
-    #         logging.debug("STATE: DISPLAY")
-    #         if data == self.MDB_POLL:  # POLL
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(b'\x02\x0A' +
-    #                 b'AMIV'.center(self.DISPLAY_WIDTH) +
-    #                 b'Zum Wohl!'.center(self.DISPLAY_WIDTH))
-    #             self.state = "ENABLED"
-    #             if self.open_session != 1:
-    #                 with self.condition:
-    #                     self.condition.notify()
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
-
-    #     elif self.state == "VEND CANCELED":
-    #         logging.debug("STATE: VEND CANCELED")
-    #         if data == self.MDB_POLL:
-    #             logging.debug("MDB: [IN] Poll")
-    #             self.send_data(b'\x06')
-    #             self.state = "SESSION"
-    #         else:
-    #             logging.warning("MDB: [IN] Unhandled Frame " + str(binascii.hexlify(data)))
-    #             logging.warning("MDB: [IN] %s" % self.state)
-    #             #logging.debug(binascii.hexlify(data[0:2]))
-    #             self.send_data(self.MDB_OUT_OF_SEQUENCE)
+        if command == self.MDB_POLL:
+            if self.state == MDBState.RESET:
+                self.send_data(b'\x00') # send JUST_RESET
+                self.state == MDBState.DISABLED
+                return
+            elif self.state != MDBState.DISABLED and len(self.send_buffer) > 0:
+                # send enqueued messages
+                data = self.send_buffer.pop(0)
+                self.send_data(data)
+                if data[0] == b'\x03':
+                    self.state = MDBState.SESSION_IDLE
+                elif data[0] == b'\x04' or data[0] == b'\x07':
+                    self.state = MDBState.ENABLED
+            else:
+                self.send_ack()
+        elif command == MDBCommand.READER:
+            if frame[1] == MDBSubcommand.READER_ENABLE:
+                if self.state == MDBState.DISABLED:
+                    self.send_ack()
+                    return
+            elif frame[1] == MDBSubcommand.READER_DISABLE:
+                if self.state != MDBState.DISABLED:
+                    self.send_ack()
+                    return
+            elif frame[1] == MDBSubcommand.READER_CANCEL:
+                if self.state != MDBState.DISABLED:
+                    self.send_data(b'\x08')
+                    # TODO: cancel current session!
+                    self.state = MDBState.ENABLED
+        elif command == MDBCommand.SETUP:
+            if frame[1] == MDBSubcommand.SETUP_CONFIG_DATA:
+                self.send_data(b'\x01\x01\x02\xF4\x01\x02\x02\x02')
+                return
+            elif frame[1] == MDBSubcommand.SETUP_MAX_MIN_PRICES:
+                self.send_ack()
+                return
+        elif command == MDBCommand.EXPANSION:
+            if frame[1] == MDBSubcommand.EXPANSION_REQUEST_ID:
+                self.send_data(b'\x09\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+                return
+        elif command == MDBCommand.RESET:
+            self.send_ack()
+            self.reset()
+            return
