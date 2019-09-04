@@ -149,16 +149,20 @@ class MDBHandler():
                     frame_buffer_length = len(self.frame_buffer)
                     print(frame_buffer_length)
                     if frame_buffer_length == 2:
-                        commandFrameLength = CommandToFrameLengthMapping[self.frame_buffer[0] & 7]
-                        if isinstance(commandFrameLength, int):
-                            self.frame_expected_length = commandFrameLength
-                        elif self.frame_buffer[1] in commandFrameLength:
-                            self.frame_expected_length = commandFrameLength[self.frame_buffer[1]]
+                        command = self.frame_buffer[0] & 7
+                        if command in CommandToFrameLengthMapping:
+                            commandFrameLength = CommandToFrameLengthMapping[]
+                            if isinstance(commandFrameLength, int):
+                                self.frame_expected_length = commandFrameLength
+                            elif self.frame_buffer[1] in commandFrameLength:
+                                self.frame_expected_length = commandFrameLength[self.frame_buffer[1]]
+                            else:
+                                # Invalid command received! Ignore packet.
+                                print('Invalid command received! Ignoring.')
+                                self.frame_buffer.clear()
+                                self.has_pending_frame = False
                         else:
-                            # Invalid command received! Ignore packet.
-                            print('Invalid command received! Ignoring.')
-                            self.frame_buffer.clear()
-                            self.has_pending_frame = False
+                            print('Unknown command ' + command.hex() + ' received!')
                     if frame_buffer_length < self.frame_expected_length:
                         self.frame_checksum = (self.frame_checksum + data[pos]) % 256
             if self.has_pending_frame and len(self.frame_buffer) == self.frame_expected_length:
