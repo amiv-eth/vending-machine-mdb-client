@@ -168,6 +168,7 @@ class MDBHandler():
                 if self.has_pending_frame and len(self.frame_buffer) < self.frame_expected_length:
                     self.frame_buffer.append(data[pos])
                     frame_buffer_length = len(self.frame_buffer)
+                    print(frame_buffer_length)
                     if frame_buffer_length == 2:
                         commandFrameLength = CommandToFrameLengthMapping[self.frame_buffer[0] & 7]
                         if isinstance(commandFrameLength, int):
