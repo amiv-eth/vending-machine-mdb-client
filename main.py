@@ -23,7 +23,7 @@ sessionCloseSent = False
 
 print('MDBHandler: start!')
 
-while finished and time.time() < stop:
+while not finished and time.time() < stop:
     mdb.run()
 
     newState = mdb.state()
