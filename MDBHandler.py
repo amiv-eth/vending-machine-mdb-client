@@ -162,7 +162,7 @@ class MDBHandler():
                                 self.frame_buffer.clear()
                                 self.has_pending_frame = False
                         else:
-                            print('Unknown command ' + command.hex() + ' received!')
+                            print('Unknown command ' + hex(command) + ' received!')
                     if frame_buffer_length < self.frame_expected_length:
                         self.frame_checksum = (self.frame_checksum + data[pos]) % 256
             if self.has_pending_frame and len(self.frame_buffer) == self.frame_expected_length:
@@ -181,17 +181,17 @@ class MDBHandler():
     def print_frame(self, frame):
         print('New frame received! | ', end='')
         print('Address: ', end='')
-        print((frame[0] & 0xf8).hex(), end=', ')
+        print(hex(frame[0] & 0xf8), end=', ')
         print('Length: ', end='')
         print(len(frame), end=', ')
         print('Checksum: ', end='')
-        print(frame[len(frame)-1].hex(), end=', ')
+        print(hex(frame[len(frame)-1]), end=', ')
         print('Command: ', end='')
-        print((frame[0] & 0x07).hex(), end=', ')
+        print(hex(frame[0] & 0x07), end=', ')
         if len(frame) > 2:
             print('Data: ', end='')
             for i in range(1, len(frame)):
-                print(frame[i].hex(), end='')
+                print(hex(frame[i]), end='')
 
     def handle_frame(self, frame):
         address = frame[0] & 0xf8
