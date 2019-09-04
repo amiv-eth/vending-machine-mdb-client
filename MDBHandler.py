@@ -107,18 +107,23 @@ class MDBHandler():
         self.pi.bb_serial_read_close(self.rx_gpio)
 
     def send_ack(self):
+        print('send ACK')
         self.send([0x00, 0x01])
 
     def send_nack(self):
+        print('send NACK')
         self.send([0xff, 0x01])
 
     def send_data(self, data):
+        print('send data: ', end='')
         frame = []
         checksum = 0
         for i in range(0, len(data)):
+            print(hex(data[i]), end=' ')
             frame.append(data[i])
             frame.append(0) # set parity bit to zero
             checksum = (checksum + data[i]) % 256
+        print(hex(checksum))
         # add checksum with parity bit set
         frame.append(checksum)
         frame.append(1) # set parity bit to one
@@ -253,7 +258,6 @@ class MDBHandler():
                 self.send_data([0x09,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00])
                 return
         elif command == MDBCommand.RESET:
-            print('send ACK')
             self.send_ack()
             self.reset()
             return
