@@ -87,7 +87,7 @@ class MDBHandler():
 
     def session_display_request(self, content):
         # will show the text for 6 seconds
-        self.send_buffer.append([0x02, 0x3C] + content)
+        self.send_buffer.append([0x02, 0x3C] + list(content))
 
     def session_cancel(self):
         self.send_buffer.append([0x04])
