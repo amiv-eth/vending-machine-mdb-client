@@ -29,6 +29,7 @@ while not finished and time.time() < stop:
     newState = mdb.get_state()
 
     if newState != state:
+        print('MDBState changed from ' + state + ' to ' + newState)
         if newState == MDBState.ENABLED:
             if sessionCloseSent:
                 finished = True
