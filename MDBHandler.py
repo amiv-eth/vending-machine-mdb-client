@@ -8,11 +8,11 @@ import pigpio
 from enum import Enum
 
 class MDBState(Enum):
-    RESET = 1
-    DISABLED = 2
-    ENABLED = 3
+    RESET        = 1
+    DISABLED     = 2
+    ENABLED      = 3
     SESSION_IDLE = 4
-    VEND = 5
+    VEND         = 5
 
 class MDBCommand():
     RESET =     0x00
@@ -214,13 +214,13 @@ class MDBHandler():
         command = frame[0] & 0x07
 
         # Only handle frames addressed to this device! Sniffing comes with revision 2!
-        if address != 0x10: # Address: 0x10
+        if address != 0x10:
             return
 
         if command == MDBCommand.POLL:
             if self.state == MDBState.RESET:
                 self.send_data([0x00]) # send JUST_RESET
-                self.state == MDBState.DISABLED
+                self.state = MDBState.DISABLED
                 return
             elif self.state != MDBState.DISABLED and len(self.send_buffer) > 0:
                 # send enqueued messages
@@ -230,8 +230,10 @@ class MDBHandler():
                     self.state = MDBState.SESSION_IDLE
                 elif data[0] == 0x04 or data[0] == 0x07:
                     self.state = MDBState.ENABLED
+                return
             else:
                 self.send_ack()
+                return
         elif command == MDBCommand.READER:
             if frame[1] == MDBSubcommand.READER_ENABLE:
                 if self.state == MDBState.DISABLED:
@@ -246,6 +248,7 @@ class MDBHandler():
                     self.send_data([0x08])
                     # TODO: cancel current session!
                     self.state = MDBState.ENABLED
+                    return
         elif command == MDBCommand.SETUP:
             if frame[1] == MDBSubcommand.SETUP_CONFIG_DATA:
                 self.send_data([0x01,0x01,0x02,0xF4,0x01,0x02,0x02,0x02])
