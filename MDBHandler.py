@@ -77,7 +77,7 @@ class MDBHandler():
             # self.handle_frame(frame)
 
     def session_open(self):
-        self.send_buffer.append([0x03, 0x05, 0x39)
+        self.send_buffer.append([0x03, 0x05, 0x39])
 
     def session_display_request(self, content):
         # will show the text for 6 seconds
