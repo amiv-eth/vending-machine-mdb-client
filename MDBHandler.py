@@ -156,7 +156,7 @@ class MDBHandler():
         if count:
             for pos in range(0, count, 2):
                 # handle new address byte / start new frame
-                if data[pos+1] is b'\x01':
+                if data[pos+1].to_bytes(1) is b'\x01':
                     # new address byte received. Start new frame
                     self.frame_buffer.clear()
                     self.has_pending_frame = True
@@ -164,7 +164,7 @@ class MDBHandler():
 
                 # handle all received bytes
                 if self.has_pending_frame and len(self.frame_buffer) < self.frame_expected_length:
-                    self.frame_buffer.append(data[pos])
+                    self.frame_buffer.append(data[pos].to_bytes(1))
                     frame_buffer_length = len(self.frame_buffer)
                     if frame_buffer_length == 2:
                         commandFrameLength = CommandToFrameLengthMapping[self.frame_buffer[0] & b'\x07']
@@ -178,7 +178,7 @@ class MDBHandler():
                             self.frame_buffer.clear()
                             self.has_pending_frame = False
                     if frame_buffer_length < self.frame_expected_length:
-                        self.frame_checksum = (self.frame_checksum + data[pos]) % 256
+                        self.frame_checksum = (self.frame_checksum + data[pos].to_bytes(1)) % 256
             if self.has_pending_frame and len(self.frame_buffer) == self.frame_expected_length:
                 # TODO: verify checksum and handle received frame
                 self.has_pending_frame = False
