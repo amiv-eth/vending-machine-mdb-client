@@ -238,10 +238,12 @@ class MDBHandler():
             if frame[1] == MDBSubcommand.READER_ENABLE:
                 if self.state == MDBState.DISABLED:
                     self.send_ack()
+                    self.state = MDBState.ENABLED
                     return
             elif frame[1] == MDBSubcommand.READER_DISABLE:
                 if self.state != MDBState.DISABLED:
                     self.send_ack()
+                    self.state = MDBState.DISABLED
                     return
             elif frame[1] == MDBSubcommand.READER_CANCEL:
                 if self.state != MDBState.DISABLED:
