@@ -65,6 +65,7 @@ class MDBHandler():
         self.rx_gpio = rx_gpio
         self.tx_gpio = tx_gpio
         pigpio.exceptions = False # Ignore error if already set as bit bang read.
+        self.pi.set_mode(tx_gpio, pigpio.OUTPUT)
         self.pi.bb_serial_read_open(rx_gpio, 9600, 9) # Set baud rate and number of data bits here. Reading 9 data bits will read the parity bit.
         pigpio.exceptions = True
         self.state = MDBState.RESET
@@ -112,7 +113,6 @@ class MDBHandler():
         self.send([0xff, 0x01])
 
     def send_data(self, data):
-        self.pi.wave_clear()
         frame = []
         checksum = 0
         for i in range(0, len(data)):
@@ -125,6 +125,7 @@ class MDBHandler():
         self.send(frame)
 
     def send(self, frame):
+        self.pi.wave_clear()
         self.pi.wave_add_serial(self.tx_gpio, 9600, frame, 0, 9)
         wid=self.pi.wave_create()
         self.pi.wave_send_once(wid)
