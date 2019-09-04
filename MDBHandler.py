@@ -39,6 +39,11 @@ class MDBSubcommand():
 
 CommandToFrameLengthMapping = {
     MDBCommand.SETUP: 7,
+    MDBCommand.READER: 3,
+    MDBCommand.EXPANSION: 32
+}
+
+SubcommandToFrameLengthMapping = {
     MDBCommand.VEND: {
         MDBSubcommand.VEND_REQUEST: 7,
         MDBSubcommand.VEND_CANCEL: 3,
@@ -47,8 +52,6 @@ CommandToFrameLengthMapping = {
         MDBSubcommand.VEND_SESSION_COMPLETE: 3,
         MDBSubcommand.VEND_CASH_SALE: 7
     },
-    MDBCommand.READER: 3,
-    MDBCommand.EXPANSION: 32
 }
 
 
@@ -118,7 +121,7 @@ class MDBHandler():
         frame.append(checksum)
         frame.append(1) # set parity bit to one
         self.send(frame)
-    
+
     def send(self, frame):
         self.pi.wave_add_serial(self.tx_gpio, 9600, frame, 0, 9)
         wid=self.pi.wave_create()
@@ -151,14 +154,14 @@ class MDBHandler():
                     if frame_buffer_length == 2:
                         command = self.frame_buffer[0] & 7
                         if command in CommandToFrameLengthMapping:
-                            commandFrameLength = CommandToFrameLengthMapping[command]
-                            if isinstance(commandFrameLength, int):
-                                self.frame_expected_length = commandFrameLength
-                            elif self.frame_buffer[1] in commandFrameLength:
-                                self.frame_expected_length = commandFrameLength[self.frame_buffer[1]]
+                            self.frame_expected_length = CommandToFrameLengthMapping[command]
+                        elif command in SubcommandToFrameLengthMapping:
+                            subcommandMapping = SubcommandToFrameLengthMapping[command]
+                            if self.frame_buffer[1] in subcommandMapping:
+                                self.frame_expected_length = subcommandMapping[self.frame_buffer[1]]
                             else:
                                 # Invalid command received! Ignore packet.
-                                print('Invalid command received! Ignoring.')
+                                print('Invalid (sub-)command received! Ignoring.')
                                 self.frame_buffer.clear()
                                 self.has_pending_frame = False
                         else:
