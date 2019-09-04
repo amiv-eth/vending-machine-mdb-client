@@ -130,14 +130,14 @@ class MDBHandler():
     def send_data(self, data):
         self.pi.wave_clear()
         frame = []
-        checksum = b'\x00'
+        checksum = 0
         for i in range(0, len(data)):
             frame.append(bytes([data[i]]))
-            frame.append(b'\x00') # set parity bit to zero
-            checksum += bytes([data[i] % 256])
+            frame.append(0) # set parity bit to zero
+            checksum = (checksum + data[i]) % 256
         # add checksum with parity bit set
         frame.append(checksum)
-        frame.append(b'\x01')
+        frame.append(1) # set parity bit to one
         self.send(frame)
     
     def send(self, frame):
@@ -156,7 +156,7 @@ class MDBHandler():
         if count:
             for pos in range(0, count, 2):
                 # handle new address byte / start new frame
-                if data[pos+1].to_bytes(1, byteorder="big") == b'\x01':
+                if data[pos+1] == 1:
                     # new address byte received. Start new frame
                     self.frame_buffer.clear()
                     self.has_pending_frame = True
@@ -166,10 +166,10 @@ class MDBHandler():
 
                 # handle all received bytes
                 if self.has_pending_frame and len(self.frame_buffer) < self.frame_expected_length:
-                    self.frame_buffer.append(data[pos].to_bytes(1, byteorder="big"))
+                    self.frame_buffer.append(data[pos])
                     frame_buffer_length = len(self.frame_buffer)
                     if frame_buffer_length == 2:
-                        commandFrameLength = CommandToFrameLengthMapping[self.frame_buffer[0] & b'\x07']
+                        commandFrameLength = CommandToFrameLengthMapping[self.frame_buffer[0] & 7]
                         if isinstance(commandFrameLength, int):
                             self.frame_expected_length = commandFrameLength
                         elif self.frame_buffer[1] in commandFrameLength:
@@ -184,7 +184,7 @@ class MDBHandler():
             if self.has_pending_frame and len(self.frame_buffer) == self.frame_expected_length:
                 # TODO: verify checksum and handle received frame
                 self.has_pending_frame = False
-                if self.frame_buffer[len(self.frame_buffer)-1] == self.frame_checksum:
+                if int.from_bytes(self.frame_buffer[len(self.frame_buffer)-1], byteorder="big") == self.frame_checksum:
                     # A valid frame was received!
                     print('Received a valid frame! YAY!')
                     return self.frame_buffer
@@ -197,25 +197,25 @@ class MDBHandler():
     def print_frame(self, frame):
         print('New frame received! | ', end='')
         print('Address: ', end='')
-        print((frame[0] & b'\xF8').hex(), end=', ')
+        print((frame[0] & 248).hex(), end=', ')
         print('Length: ', end='')
         print(len(frame), end=', ')
         print('Checksum: ', end='')
         print(frame[len(frame)-1].hex(), end=', ')
         print('Command: ', end='')
-        print((frame[0] & b'\x07').hex(), end=', ')
+        print((frame[0] & 7).hex(), end=', ')
         if len(frame) > 2:
             print('Data: ', end='')
             for i in range(1, len(frame)):
                 print(frame[i].hex(), end='')
 
     def handle_frame(self, frame):
-        address = frame[0] & b'\xF8'
+        address = frame[0] & 248
         length = len(frame)
-        command = frame[0] & b'\x07'
+        command = frame[0] & 7
 
         # Only handle frames addressed to this device! Sniffing comes with revision 2!
-        if address != b'\x010':
+        if address != 16: # Address: 0x10
             return
 
         if command == self.MDB_POLL:
