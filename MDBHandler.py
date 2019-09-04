@@ -146,7 +146,6 @@ class MDBHandler():
                     self.has_pending_frame = True
                     self.frame_checksum = 0
                     self.frame_expected_length = 2
-                    print('start recording a new frame...')
 
                 # handle all received bytes
                 if self.has_pending_frame and len(self.frame_buffer) < self.frame_expected_length:
@@ -197,6 +196,7 @@ class MDBHandler():
             print('Data: ', end='')
             for i in range(1, len(frame)):
                 print(hex(frame[i]), end='')
+        print('')
 
     def handle_frame(self, frame):
         address = frame[0] & 0xf8
