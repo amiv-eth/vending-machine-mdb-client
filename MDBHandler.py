@@ -189,7 +189,7 @@ class MDBHandler():
 
         print('New frame received! | ', end='')
         print('Address: ', end='')
-        print(hex(), end=', ')
+        print(hex(address), end=', ')
         print('Length: ', end='')
         print(len(frame), end=', ')
         print('Checksum: ', end='')
