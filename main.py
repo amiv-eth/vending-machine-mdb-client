@@ -12,12 +12,13 @@ if not pi.connected:
     print('pigpio not connected!')
     exit(0)
 
-mdb = MDBHandler(pi, RXD, TXD)
+condition = Condition()
+
+mdb = MDBHandler(pi, RXD, TXD, condition)
 
 pigpio.exceptions = True
 
 finished = False
-condition = Condition()
 stop = time.time() + 20.0 # recording 20.0 seconds
 state = MDBState.RESET
 sendSessionCloseTime = None
