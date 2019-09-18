@@ -78,7 +78,7 @@ class MDBCommunicator(Thread):
         while self.is_running:
             frame = self._collect_frame()
             if frame is not None:
-                self._print_frame(frame)
+                # self._print_frame(frame)
                 self._handle_frame(frame)
 
         self._terminate()
@@ -270,14 +270,15 @@ class MDBCommunicator(Thread):
                                 self.frame_buffer.clear()
                                 self.has_pending_frame = False
                         else:
-                            print('Unknown command ' + hex(command) + ' received!')
+                            pass
+                            # print('Unknown command ' + hex(command) + ' received!')
                     if frame_buffer_length < self.frame_expected_length:
                         self.frame_checksum = (self.frame_checksum + data[pos]) % 256
             if self.has_pending_frame and len(self.frame_buffer) == self.frame_expected_length:
                 self.has_pending_frame = False
                 if self.frame_buffer[len(self.frame_buffer)-1] == self.frame_checksum:
                     # A valid frame was received!
-                    print('Received a valid frame! YAY! Address is ' + hex(self.frame_buffer[0] & 0xf8))
+                    # print('Received a valid frame! YAY! Address is ' + hex(self.frame_buffer[0] & 0xf8))
                     return self.frame_buffer
                 else:
                     # An invalid frame was received!
