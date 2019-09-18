@@ -144,6 +144,8 @@ class MDBCommunicator(Thread):
             #     messages.append(message)
             #     data += message.frame
 
+            print('POLL: ', end='')
+
             if self.send_message(data):
                 while len(messages) > 0:
                     message = messages.popleft()
