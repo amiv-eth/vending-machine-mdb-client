@@ -35,21 +35,22 @@ try:
             newState = mdb.get_state()
 
             if newState != state:
-                print('MDBState changed from ' + str(state) + ' to ' + str(newState))
-                # if newState == MDBState.ENABLED:
-                #     if sessionCloseSent:
-                #         finished = True
-                #     else:
-                #         mdb.session_open()
+                print('===== MDBState changed from ' + str(state) + ' to ' + str(newState) + ' =====')
+                if newState == MDBState.ENABLED:
+                    if sessionCloseSent:
+                        finished = True
+                    else:
+                        mdb.open_session(b'Sorry, heute'.center(16) +
+                            (b'kein Freibier!').center(16), 5000)
+                        sendSessionCloseTime = time.time() + 6
                 # elif newState == MDBState.SESSION_IDLE:
                 #     mdb.session_display_request(b'Sorry, heute'.center(16) +
                 #             (b'kein Freibier!').center(16))
-                #     sendSessionCloseTime = time.time() + 6
                 state = newState
 
-            # if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
-            #     mdb.session_close()
-            #     sessionCloseSent = True
+            if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
+                mdb.close_session()
+                sessionCloseSent = True
 except KeyboardInterrupt:
     print("== Stopping due to user request! ==")
 
