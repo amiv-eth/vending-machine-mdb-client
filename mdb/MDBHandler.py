@@ -62,45 +62,41 @@ class MDBHandler():
 
 
     def open_session(self, display_content: Union[Sequence[int], None] = None, time: int = 6000) -> None:
-        with self.state_lock:
-            if (self.state == MDBState.ENABLED):
+        if (self.state == MDBState.ENABLED):
 
-                def callback(successful: bool) -> bool:
-                    print('TESTTESTTESTTESTTESTTEST' + str(successful))
-                    if successful:
-                        print('TEST@TEST@TEST@TEST@TEST@TEST')
-                        self._set_state(MDBState.SESSION_IDLE)
-                        print('testtesttetstesttesttest')
-                    return not successful
+            def callback(successful: bool) -> bool:
+                print('TESTTESTTESTTESTTESTTEST' + str(successful))
+                if successful:
+                    print('TEST@TEST@TEST@TEST@TEST@TEST')
+                    self._set_state(MDBState.SESSION_IDLE)
+                    print('testtesttetstesttesttest')
+                return not successful
 
-                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionStart(), callback))
-                if display_content is not None:
-                    self.update_display(display_content, time)
+            self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionStart(), callback))
+            if display_content is not None:
+                self.update_display(display_content, time)
 
 
     def update_display(self, content: Sequence[int], time: int = 6000) -> None:
         # time in milliseconds
-        with self.state_lock:
-            if self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND:
-                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionDisplayRequest(time, content)))
+        if self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND:
+            self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionDisplayRequest(time, content)))
 
 
     def cancel_session(self) -> None:
-        with self.state_lock:
-            if (self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND):
-                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionCancel()))
+        if (self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND):
+            self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionCancel()))
 
 
     def close_session(self) -> None:
-        with self.state_lock:
-            if (self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND):
+        if (self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND):
 
-                def callback(successful: bool) -> bool:
-                    if successful:
-                        self._set_state(MDBState.ENABLED)
-                    return not successful
+            def callback(successful: bool) -> bool:
+                if successful:
+                    self._set_state(MDBState.ENABLED)
+                return not successful
 
-                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionEnd(), callback))
+            self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionEnd(), callback))
 
 
     def get_vend_request(self) -> Union[MDBVendRequest, None]:
