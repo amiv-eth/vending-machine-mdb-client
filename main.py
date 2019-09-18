@@ -45,8 +45,10 @@ try:
                         #     (b'kein Freibier!').center(16), 5000)
                         # sendSessionCloseTime = time.time() + 6
                 elif newState == MDBState.SESSION_IDLE:
-                    mdb.update_display(b'Sorry, heute'.center(16) +
-                            (b'kein Freibier!').center(16))
+                    displayContent = 'Sorry, heute'.center(16) + ('kein Freibier!').center(16)
+                    mdb.update_display([ord(c) for c in displayContent])
+                    # mdb.update_display(b'Sorry, heute'.center(16) +
+                    #         (b'kein Freibier!').center(16))
                     sendSessionCloseTime = time.time() + 6
                 state = newState
 
