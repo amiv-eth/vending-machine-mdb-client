@@ -99,7 +99,7 @@ class MDBCommunicator(Thread):
             self.queued_messages.clear()
 
         frame = self._collect_frame()
-        while frame is None:
+        while frame is None or frame[0] & 0xf8 != self.address:
             frame = self._collect_frame()
 
         self.send_message(MDBMessageCreator.justReset())
