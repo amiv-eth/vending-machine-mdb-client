@@ -179,15 +179,15 @@ class MDBCommunicator(Thread):
 
 
     def send_ack(self) -> None:
-        self._send([0x00, 0x01])
+        self._send([0x00, 0x01], False)
 
 
     def send_nack(self) -> None:
         print('send NACK')
-        self._send([0xff, 0x01])
+        self._send([0xff, 0x01], False)
 
 
-    def _send(self, frame: Sequence[int]) -> bool:
+    def _send(self, frame: Sequence[int], responseExpected: bool = True) -> bool:
         with self.send_lock:
             self.pi.wave_clear()
             self.pi.wave_add_serial(self.tx_gpio, 9600, frame, 0, 9)
@@ -198,6 +198,9 @@ class MDBCommunicator(Thread):
             self.pi.wave_delete(wid)
 
             start_time = time.time_ns()
+
+            if not responseExpected:
+                return True
 
             while time.time_ns() - start_time < NACK_TIME_DELAY:
                 (count, data) = self.pi.bb_serial_read(self.rx_gpio)
