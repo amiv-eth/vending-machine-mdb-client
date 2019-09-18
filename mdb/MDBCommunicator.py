@@ -135,7 +135,7 @@ class MDBCommunicator(Thread):
             data = []
             while (len(self.queued_messages) > 0 and len(data) + len(self.queued_messages[0].frame) < MAX_RESPONSE_LENGTH):
                 message = self.queued_messages.popleft()
-                messages.append(self.queued_messages.popleft())
+                messages.append(message)
                 data += message.frame
 
             if self.send_message(data):
