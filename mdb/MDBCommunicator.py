@@ -216,9 +216,7 @@ class MDBCommunicator(Thread):
 
                     if count > 2:
                         # Process additional data received after an ACK/NACK
-                        data.popleft()
-                        data.popleft()
-                        self._process_received_frame_data(count-2, data)
+                        self._process_received_frame_data(count-2, data[2:])
 
                     return retValue
 
