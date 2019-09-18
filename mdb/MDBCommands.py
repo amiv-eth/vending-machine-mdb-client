@@ -54,7 +54,7 @@ class MDBMessageCreator():
     @staticmethod
     def sessionDisplayRequest(time: int, content: Sequence[int]) -> Sequence[int]:
         # time must be in milliseconds!
-        return [0x02, time / 100] + list(content)
+        return [0x02, int(time / 100)] + list(content)
 
     @staticmethod
     def vendApprove(amount: int = 0xFFFF) -> Sequence[int]:
