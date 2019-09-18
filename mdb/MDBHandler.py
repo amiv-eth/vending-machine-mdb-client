@@ -180,6 +180,8 @@ class MDBHandler():
                 if self.state == MDBState.DISABLED:
                     self.communicator.send_ack()
                     self._set_state(MDBState.ENABLED)
+                else:
+                    self.communicator.send_nack()
             elif frame[1] == MDBSubcommand.READER_DISABLE:
                 if self.state != MDBState.DISABLED:
                     self.communicator.send_ack()
@@ -189,6 +191,8 @@ class MDBHandler():
                     self.communicator.send_message([0x08])
                     # TODO: cancel current session!
                     self._set_state(MDBState.ENABLED)
+                else:
+                    self.communicator.send_nack()
         elif command == MDBCommand.SETUP:
             if frame[1] == MDBSubcommand.SETUP_CONFIG_DATA:
                 self.communicator.send_message(MDBMessageCreator.setupConfigData())
