@@ -59,6 +59,8 @@ try:
 except KeyboardInterrupt:
     print("== Stopping due to user request! ==")
 
+print('MDBHandler: stopping!')
+
 mdb.stop()
 mdb.join()
 
