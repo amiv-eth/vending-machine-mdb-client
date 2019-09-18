@@ -32,7 +32,8 @@ mdb.start()
 try:
     with condition:
         while not finished and time.time() < stop:
-            condition.wait(2)
+            # condition.wait(2)
+            time.sleep(2)
             newState = mdb.get_state()
 
             if newState != state:
