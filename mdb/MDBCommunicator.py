@@ -111,12 +111,12 @@ class MDBCommunicator(Thread):
             self._terminate()
 
 
-    def enqueue_message(self, frame: EnqueuedMessage) -> None:
-        if (len(frame) > MAX_RESPONSE_LENGTH):
+    def enqueue_message(self, message: EnqueuedMessage) -> None:
+        if (len(message.frame) > MAX_RESPONSE_LENGTH):
             raise Exception('Byte length of frame exceeds the max. size of a response!')
 
         with self.queued_messages_lock:
-            self.queued_messages.append(frame)
+            self.queued_messages.append(message)
 
 
     def enqueue_messages(self, frames: Sequence[EnqueuedMessage]) -> None:
