@@ -30,34 +30,34 @@ print('TIME: ' + str(time.time()))
 mdb.start()
 
 try:
-    with condition:
-        while not finished and time.time() < stop:
-            # condition.wait(2)
-            time.sleep(2)
-            newState = mdb.get_state()
+    # with condition:
+    while not finished and time.time() < stop:
+        # condition.wait(2)
+        time.sleep(2)
+        newState = mdb.get_state()
 
-            if newState != state:
-                print('===== MDBState changed from ' + str(state) + ' to ' + str(newState) + ' =====')
-                if newState == MDBState.ENABLED:
-                    if sessionCloseSent:
-                        finished = True
-                    else:
-                        mdb.open_session()
-                        # mdb.open_session(b'Sorry, heute'.center(16) +
-                        #     (b'kein Freibier!').center(16), 5000)
-                        # sendSessionCloseTime = time.time() + 6
-                elif newState == MDBState.SESSION_IDLE:
-                    displayContent = 'Sorry, heute'.center(16) + ('kein Freibier!').center(16)
-                    mdb.update_display([ord(c) for c in displayContent])
-                    # mdb.update_display(b'Sorry, heute'.center(16) +
-                    #         (b'kein Freibier!').center(16))
-                    sendSessionCloseTime = time.time() + 6
-                state = newState
+        if newState != state:
+            print('===== MDBState changed from ' + str(state) + ' to ' + str(newState) + ' =====')
+            if newState == MDBState.ENABLED:
+                if sessionCloseSent:
+                    finished = True
+                else:
+                    mdb.open_session()
+                    # mdb.open_session(b'Sorry, heute'.center(16) +
+                    #     (b'kein Freibier!').center(16), 5000)
+                    # sendSessionCloseTime = time.time() + 6
+            elif newState == MDBState.SESSION_IDLE:
+                displayContent = 'Sorry, heute'.center(16) + ('kein Freibier!').center(16)
+                mdb.update_display([ord(c) for c in displayContent])
+                # mdb.update_display(b'Sorry, heute'.center(16) +
+                #         (b'kein Freibier!').center(16))
+                sendSessionCloseTime = time.time() + 6
+            state = newState
 
-            if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
-                print('+++++ CANCEL session +++++')
-                mdb.cancel_session()
-                sessionCloseSent = True
+        if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
+            print('+++++ CANCEL session +++++')
+            mdb.cancel_session()
+            sessionCloseSent = True
 except KeyboardInterrupt:
     print("== Stopping due to user request! ==")
 
