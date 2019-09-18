@@ -1,5 +1,5 @@
-from typing import Sequence, Any, Callable, Union, Tuple, Condition
-from threading import Lock
+from typing import Sequence, Any, Callable, Union, Tuple
+from threading import Lock, Condition
 from enum import Enum
 import struct
 
