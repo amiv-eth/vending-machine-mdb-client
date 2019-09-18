@@ -40,8 +40,8 @@ class MDBMessageCreator():
 
     @staticmethod
     def sessionStart() -> Sequence[int]:
-        #return [0x03, 0x05, 0x39] # Available balance: 13.37 CHF
-        return [0x03, 0xFF, 0xFF]  # Available balance: unknown
+        return [0x03, 0x05, 0x39] # Available balance: 13.37 CHF
+        # return [0x03, 0xFF, 0xFF]  # Available balance: unknown
 
     @staticmethod
     def sessionCancel() -> Sequence[int]:
