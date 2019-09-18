@@ -66,6 +66,7 @@ class MDBHandler():
             if (self.state == MDBState.ENABLED):
 
                 def callback(successful: bool) -> bool:
+                    print('TESTTESTTESTTESTTESTTEST' + str(successful))
                     if successful:
                         self._set_state(MDBState.SESSION_IDLE)
                     return not successful
