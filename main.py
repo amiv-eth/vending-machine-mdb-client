@@ -28,27 +28,30 @@ print('MDBHandler: start!')
 
 mdb.start()
 
-with condition:
-    while not finished and time.time() < stop:
-        condition.wait()
-        newState = mdb.get_state()
+try:
+    with condition:
+        while not finished and time.time() < stop:
+            condition.wait()
+            newState = mdb.get_state()
 
-        if newState != state:
-            print('MDBState changed from ' + str(state) + ' to ' + str(newState))
-            # if newState == MDBState.ENABLED:
-            #     if sessionCloseSent:
-            #         finished = True
-            #     else:
-            #         mdb.session_open()
-            # elif newState == MDBState.SESSION_IDLE:
-            #     mdb.session_display_request(b'Sorry, heute'.center(16) +
-            #             (b'kein Freibier!').center(16))
-            #     sendSessionCloseTime = time.time() + 6
-            state = newState
+            if newState != state:
+                print('MDBState changed from ' + str(state) + ' to ' + str(newState))
+                # if newState == MDBState.ENABLED:
+                #     if sessionCloseSent:
+                #         finished = True
+                #     else:
+                #         mdb.session_open()
+                # elif newState == MDBState.SESSION_IDLE:
+                #     mdb.session_display_request(b'Sorry, heute'.center(16) +
+                #             (b'kein Freibier!').center(16))
+                #     sendSessionCloseTime = time.time() + 6
+                state = newState
 
-        # if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
-        #     mdb.session_close()
-        #     sessionCloseSent = True
+            # if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
+            #     mdb.session_close()
+            #     sessionCloseSent = True
+except KeyboardInterrupt:
+    print("== Stopping due to user request! ==")
 
 mdb.stop()
 
