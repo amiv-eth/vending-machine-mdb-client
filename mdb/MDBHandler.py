@@ -68,7 +68,9 @@ class MDBHandler():
                 def callback(successful: bool) -> bool:
                     print('TESTTESTTESTTESTTESTTEST' + str(successful))
                     if successful:
+                        print('TEST@TEST@TEST@TEST@TEST@TEST')
                         self._set_state(MDBState.SESSION_IDLE)
+                        print('testtesttetstesttesttest')
                     return not successful
 
                 self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionStart(), callback))
