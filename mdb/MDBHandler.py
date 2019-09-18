@@ -48,6 +48,10 @@ class MDBHandler():
         self.communicator.exit()
 
 
+    def join(self, timeout: int = None) -> None:
+        self.communicator.join()
+
+
     def __del__(self):
         self.stop()
 
