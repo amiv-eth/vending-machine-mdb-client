@@ -70,7 +70,7 @@ class MDBHandler():
                         self._set_state(MDBState.SESSION_IDLE)
                     return not successful
 
-                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionStart(), self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.vendDeny(), callback))))
+                self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionStart(), callback))
                 if display_content is not None:
                     self.update_display(display_content, time)
 
