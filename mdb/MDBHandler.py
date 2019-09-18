@@ -35,6 +35,7 @@ class MDBHandler():
         self.state = MDBState.RESET
         self.state_lock = Lock()
         self.vend_request = None
+        self.state_changed_condition = state_changed_condition
 
 
     def start(self) -> None:
