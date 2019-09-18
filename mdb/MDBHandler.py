@@ -85,17 +85,6 @@ class MDBHandler():
             self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionCancel()))
 
 
-    def close_session(self) -> None:
-        if (self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND):
-
-            def callback(successful: bool) -> bool:
-                if successful:
-                    self._set_state(MDBState.ENABLED)
-                return not successful
-
-            self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionEnd(), callback))
-
-
     def get_vend_request(self) -> Union[MDBVendRequest, None]:
         return self.vend_request
 
