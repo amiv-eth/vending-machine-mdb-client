@@ -25,7 +25,7 @@ sendSessionCloseTime = None
 sessionCloseSent = False
 
 print('MDBHandler: start!')
-print('TIME: ' + time.time())
+print('TIME: ' + str(time.time()))
 
 mdb.start()
 
