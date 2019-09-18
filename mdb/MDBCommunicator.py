@@ -265,7 +265,7 @@ class MDBCommunicator(Thread):
                                 self.frame_expected_length = subcommandMapping[self.frame_buffer[1]]
                             else:
                                 # Invalid command received! Ignore packet.
-                                print('Invalid (sub-)command received! Ignoring.')
+                                print('Invalid (sub-)command received! Ignoring. (Command: ' + hex(command) + ' | Subcommand: ' + hex(self.frame_buffer[1]) + ')')
                                 self.frame_buffer.clear()
                                 self.has_pending_frame = False
                         else:
