@@ -134,15 +134,15 @@ class MDBCommunicator(Thread):
             messages = deque()
             data = []
             if (len(self.queued_messages) == 0):
-                return
-            
-            message = self.queued_messages.popleft()
-            messages.append(message)
-            data += message.frame
-            # while (len(self.queued_messages) > 0 and len(data) + len(self.queued_messages[0].frame) < MAX_RESPONSE_LENGTH):
-            #     message = self.queued_messages.popleft()
-            #     messages.append(message)
-            #     data += message.frame
+                self.send_ack()
+
+            # message = self.queued_messages.popleft()
+            # messages.append(message)
+            # data += message.frame
+            while (len(self.queued_messages) > 0 and len(data) + len(self.queued_messages[0].frame) < MAX_RESPONSE_LENGTH):
+                message = self.queued_messages.popleft()
+                messages.append(message)
+                data += message.frame
 
             print('POLL: ', end='')
 
