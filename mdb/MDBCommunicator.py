@@ -81,6 +81,8 @@ class MDBCommunicator(Thread):
                 self._print_frame(frame)
                 self._handle_frame(frame)
 
+        self._terminate()
+
 
     def reset(self) -> None:
         with self.queued_messages_lock:
@@ -92,7 +94,7 @@ class MDBCommunicator(Thread):
             self.send_buffer = []
 
 
-    def __del__(self):
+    def _terminate(self):
         with self.queued_messages_lock:
             self.queued_messages.clear()
 
@@ -102,6 +104,11 @@ class MDBCommunicator(Thread):
 
         self.send_message(MDBMessageCreator.justReset())
         self.pi.bb_serial_read_close(self.rx_gpio)
+
+
+    def __del__(self):
+        if self.is_running:
+            self._terminate()
 
 
     def enqueue_message(self, frame: EnqueuedMessage) -> None:
