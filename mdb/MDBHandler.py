@@ -155,6 +155,7 @@ class MDBHandler():
                     self._set_state(MDBState.SESSION_IDLE)
                 else:
                     # TODO: out-of-sequence message!
+                    pass
             elif frame[1] == MDBSubcommand.VEND_SESSION_COMPLETE:
                 if self.state == MDBState.SESSION_IDLE:
 
