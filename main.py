@@ -53,7 +53,8 @@ try:
                 state = newState
 
             if newState == MDBState.SESSION_IDLE and time.time() >= sendSessionCloseTime and not sessionCloseSent:
-                mdb.close_session()
+                print('+++++ CANCEL session +++++')
+                mdb.cancel_session()
                 sessionCloseSent = True
 except KeyboardInterrupt:
     print("== Stopping due to user request! ==")
