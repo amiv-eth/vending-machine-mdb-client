@@ -45,6 +45,7 @@ class EnqueuedMessage():
 class MDBCommunicator(Thread):
 
     def __init__(self, pi: Any, rx_gpio: int, tx_gpio: int, handle_frame_function: Callable[[int, int, Sequence[int]], None], address: int = 0x10):
+        super().__init__()
         self.address = address
         self.pi = pi
         self.rx_gpio = rx_gpio
