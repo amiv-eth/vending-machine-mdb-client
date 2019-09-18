@@ -139,7 +139,8 @@ class MDBHandler():
                     self.communicator.send_ack()
                     self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.vendDeny(), callback))
                 else:
-                    # TODO: out-of-sequence message!
+                    # TODO: out-of-sequence message!state_changed_condition
+                    pass
             elif frame[1] == MDBSubcommand.VEND_SUCCESS:
                 if self.state == MDBState.VEND:
                     self.communicator.send_ack()
@@ -147,6 +148,7 @@ class MDBHandler():
                     # TODO: report dispensed product now!
                 else:
                     # TODO: out-of-sequence message!
+                    pass
             elif frame[1] == MDBSubcommand.VEND_FAILURE:
                 if self.state == MDBState.VEND:
                     self.communicator.send_ack()
@@ -165,6 +167,7 @@ class MDBHandler():
                     self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionEnd(), callback))
                 else:
                     #TODO: out-of-sequence message!
+                    pass
         elif command == MDBCommand.READER:
             if frame[1] == MDBSubcommand.READER_ENABLE:
                 if self.state == MDBState.DISABLED:
