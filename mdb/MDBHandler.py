@@ -44,12 +44,12 @@ class MDBHandler():
         self.communicator.start()
 
 
-    def exit(self) -> None:
+    def stop(self) -> None:
         self.communicator.exit()
 
 
     def __del__(self):
-        self.communicator.exit()
+        self.stop()
 
 
     def reset(self) -> None:
@@ -107,7 +107,8 @@ class MDBHandler():
     def _set_state(self, state: MDBState) -> None:
         with self.state_lock:
             self.state = state
-            self.state_changed_condition.notifyAll()
+            with self.state_changed_condition:
+                self.state_changed_condition.notifyAll()
 
 
     # ############################################################################### #
