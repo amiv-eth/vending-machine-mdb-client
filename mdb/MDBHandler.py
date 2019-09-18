@@ -76,7 +76,7 @@ class MDBHandler():
 
     def update_display(self, content: Sequence[int], time: int = 6000) -> None:
         # time in milliseconds
-        if self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND:
+        if self.state == MDBState.SESSION_IDLE or self.state == MDBState.VEND or self.state == MDBState.ENABLED:
             self.communicator.enqueue_message(EnqueuedMessage(MDBMessageCreator.sessionDisplayRequest(time, content)))
 
 
